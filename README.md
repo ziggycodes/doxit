@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DOXIT
 
-## Getting Started
+**Documentation, grounded.** AI writing that uses your own files as context.
 
-First, run the development server:
+DOXIT helps SaaS teams and agencies draft SOPs, onboarding guides and client docs from the PDFs, notes and specs they already trust, so the output stays accurate instead of generic.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> **Status:** early build. Authentication, free trials, documents, and context-file upload with chunk storage are in place. The AI drafting layer is next.
+
+## Tech stack
+
+- **Next.js** (App Router) with **TypeScript**
+- **Convex** for the database, file storage and HTTP actions
+- **Convex Auth** for email and password sign-in
+
+## What's built
+
+- **Auth:** sign-up and login flows using Convex Auth, with route groups for marketing, auth and dashboard pages
+- **Free trial:** every new user gets a 3-day trial, tracked on their profile with a trial banner in the dashboard
+- **Documents:** per-user documents with title, content and timestamps, indexed for "recently updated" queries
+- **Context files:** users upload reference files to Convex storage; each file moves through `uploaded → processing → ready / failed`
+- **Context chunks:** file text is split into chunks and stored per file, ready for retrieval when drafting
+- **Authorisation:** shared helpers in `convex/lib/authz.ts` make sure users can only read and write their own data
+
+## Data model
+
+| Table | Purpose |
+|---|---|
+| `userProfiles` | Display name, email, trial start and end |
+| `documents` | User-authored docs |
+| `context_files` | Uploaded reference files and their processing status |
+| `contextChunks` | Text chunks extracted from each context file |
+
+## Project structure
+
+```
+app/
+  (marketing)/     Landing page
+  (auth)/          Login and sign-up
+  (dashboard)/     Signed-in workspace
+components/        Auth forms, dashboard header, trial banner, providers
+convex/            Schema, auth config, documents, context files and chunks
+lib/trial.ts       Trial window logic
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+cp .env.example .env.local
+npx convex dev      # starts Convex and generates types
+npm run dev         # in a second terminal
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then open http://localhost:3000.
 
-## Learn More
+## Roadmap
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Extract text from PDFs and notes on upload
+- Retrieve relevant chunks and draft documents with an LLM
+- Templates for SOPs, onboarding guides and client docs
+- Paid plans after the trial
